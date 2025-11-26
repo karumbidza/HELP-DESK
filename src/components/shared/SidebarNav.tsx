@@ -10,7 +10,8 @@ import {
   Building2, 
   FolderKanban, 
   Settings, 
-  BarChart3 
+  BarChart3,
+  UserCircle 
 } from 'lucide-react'
 
 interface NavItem {
@@ -52,6 +53,12 @@ const navigationItems: NavItem[] = [
     roles: ['super_admin', 'org_admin'] 
   },
   { 
+    name: 'Profile', 
+    href: '/profile', 
+    icon: UserCircle,
+    roles: 'all' 
+  },
+  { 
     name: 'Settings', 
     href: '/settings', 
     icon: Settings,
@@ -67,10 +74,16 @@ interface SidebarNavProps {
 export function SidebarNav({ userRole, organizationId }: SidebarNavProps) {
   const pathname = usePathname()
 
+  // Debug: log the role
+  console.log('SidebarNav - Current role:', userRole)
+
   const filteredNavigation = navigationItems.filter((item) => {
     if (item.roles === 'all') return true
     return item.roles.includes(userRole)
   })
+
+  // Debug: log filtered items
+  console.log('SidebarNav - Filtered items:', filteredNavigation.map(i => i.name))
 
   return (
     <nav className="space-y-1">
