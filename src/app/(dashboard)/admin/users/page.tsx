@@ -1,9 +1,12 @@
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { Button } from '@/components/ui/button'
 import { RoleBadge } from '@/components/shared/RoleBadge'
 import { UserRole } from '@/types/database.types'
+import { Plus } from 'lucide-react'
 
 export default async function AdminUsersPage() {
   const supabase = await createClient()
@@ -38,11 +41,21 @@ export default async function AdminUsersPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
-        <p className="mt-1 text-gray-600">
-          Manage and monitor user accounts {userRole === 'org_admin' ? 'in your organization' : 'across all organizations'}
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">User Management</h1>
+          <p className="mt-1 text-gray-600">
+            Manage and monitor user accounts {userRole === 'org_admin' ? 'in your organization' : 'across all organizations'}
+          </p>
+        </div>
+        {userRole === 'super_admin' && (
+          <Link href="/admin/users/create">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create User
+            </Button>
+          </Link>
+        )}
       </div>
 
       <Card>
