@@ -1,65 +1,168 @@
-import Image from "next/image";
+import { redirect } from 'next/navigation'
+import { createClient } from '@/lib/supabase/server'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { CheckCircle, Shield, Users, Zap } from 'lucide-react'
 
-export default function Home() {
+export default async function Home() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+
+  // If user is logged in, redirect to dashboard
+  if (user) {
+    redirect('/dashboard')
+  }
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white">
+      {/* Header */}
+      <header className="border-b bg-white/80 backdrop-blur-sm">
+        <div className="container mx-auto flex h-16 items-center justify-between px-4">
+          <h1 className="text-2xl font-bold text-blue-600">SaaS Platform</h1>
+          <div className="flex gap-4">
+            <Link href="/login">
+              <Button variant="ghost">Sign In</Button>
+            </Link>
+            <Link href="/signup">
+              <Button>Get Started</Button>
+            </Link>
+          </div>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </header>
+
+      {/* Hero Section */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <h1 className="mb-6 text-5xl font-bold text-gray-900">
+          Modern Multi-Tenant SaaS Platform
+        </h1>
+        <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-600">
+          Built with Next.js, Supabase, and TypeScript. Features enterprise-grade security,
+          role-based access control, and complete data isolation.
+        </p>
+        <div className="flex justify-center gap-4">
+          <Link href="/signup">
+            <Button size="lg" className="text-lg">
+              Start Free Trial
+            </Button>
+          </Link>
+          <Link href="/login">
+            <Button size="lg" variant="outline" className="text-lg">
+              Sign In
+            </Button>
+          </Link>
         </div>
-      </main>
+      </section>
+
+      {/* Features Grid */}
+      <section className="container mx-auto px-4 py-20">
+        <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">
+          Everything you need to scale
+        </h2>
+        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader>
+              <Shield className="mb-2 h-10 w-10 text-blue-600" />
+              <CardTitle>Enterprise Security</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Row-level security with PostgreSQL RLS policies ensures complete data isolation
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Users className="mb-2 h-10 w-10 text-blue-600" />
+              <CardTitle>Role-Based Access</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Flexible role management with Super Admin, Org Admin, Contractor, and User roles
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <Zap className="mb-2 h-10 w-10 text-blue-600" />
+              <CardTitle>Lightning Fast</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Server-side rendering with Next.js 14 App Router for optimal performance
+              </CardDescription>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CheckCircle className="mb-2 h-10 w-10 text-blue-600" />
+              <CardTitle>Production Ready</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CardDescription>
+                Fully tested authentication, authorization, and multi-tenancy features
+              </CardDescription>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Tech Stack */}
+      <section className="border-t bg-gray-50 py-20">
+        <div className="container mx-auto px-4">
+          <h2 className="mb-12 text-center text-3xl font-bold text-gray-900">
+            Built with modern technologies
+          </h2>
+          <div className="flex flex-wrap justify-center gap-8 text-gray-600">
+            <div className="text-center">
+              <p className="text-lg font-semibold">Next.js 14</p>
+              <p className="text-sm">React Framework</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold">Supabase</p>
+              <p className="text-sm">Backend & Database</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold">TypeScript</p>
+              <p className="text-sm">Type Safety</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold">Tailwind CSS</p>
+              <p className="text-sm">Styling</p>
+            </div>
+            <div className="text-center">
+              <p className="text-lg font-semibold">shadcn/ui</p>
+              <p className="text-sm">UI Components</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="container mx-auto px-4 py-20 text-center">
+        <h2 className="mb-6 text-3xl font-bold text-gray-900">
+          Ready to get started?
+        </h2>
+        <p className="mx-auto mb-8 max-w-2xl text-lg text-gray-600">
+          Create your account and start building today. No credit card required.
+        </p>
+        <Link href="/signup">
+          <Button size="lg" className="text-lg">
+            Create Free Account
+          </Button>
+        </Link>
+      </section>
+
+      {/* Footer */}
+      <footer className="border-t bg-white py-8">
+        <div className="container mx-auto px-4 text-center text-gray-600">
+          <p>© 2024 SaaS Platform. Built with Next.js, Supabase, and TypeScript.</p>
+        </div>
+      </footer>
     </div>
-  );
+  )
 }
+
