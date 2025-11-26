@@ -1,6 +1,14 @@
-# 🚀 SaaS Platform - Multi-Tenant Application
+# 🚀 Help Desk - Multi-Tenant SaaS Platform
+
+[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue?logo=typescript)](https://www.typescriptlang.org/)
+[![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-green?logo=supabase)](https://supabase.com/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A modern, scalable SaaS platform built with Next.js 14, Supabase, and TypeScript. Features role-based access control, multi-tenancy, and enterprise-grade security.
+
+**🔗 Repository**: [github.com/karumbidza/HELP-DESK](https://github.com/karumbidza/HELP-DESK)
 
 ## ✨ Features
 
@@ -230,13 +238,33 @@ Contributions are welcome! Please follow these steps:
 
 This project is licensed under the MIT License.
 
+## 🤝 Contributing
+
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Quick Start for Contributors
+
+1. Fork the repository
+2. Clone your fork: `git clone https://github.com/YOUR_USERNAME/HELP-DESK.git`
+3. Create a branch: `git checkout -b feature/your-feature`
+4. Make your changes
+5. Commit: `git commit -m 'feat: add some feature'`
+6. Push: `git push origin feature/your-feature`
+7. Open a Pull Request
+
 ## 🆘 Support
 
 For issues and questions:
 
-- Check the [Database Documentation](supabase/DATABASE.md)
-- Review [Supabase Docs](https://supabase.com/docs)
-- Review [Next.js Docs](https://nextjs.org/docs)
+- **Issues**: [GitHub Issues](https://github.com/karumbidza/HELP-DESK/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/karumbidza/HELP-DESK/discussions)
+- **Documentation**: Check [Database Documentation](supabase/DATABASE.md)
+- **Supabase**: [Supabase Docs](https://supabase.com/docs)
+- **Next.js**: [Next.js Docs](https://nextjs.org/docs)
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## 🎯 Next Steps
 
@@ -246,6 +274,12 @@ For issues and questions:
 4. **Customize Styling**: Adjust colors and branding
 5. **Add Features**: Implement project management, billing, etc.
 
+## ⭐ Star History
+
+If you find this project useful, please consider giving it a star on GitHub!
+
 ---
 
 Built with ❤️ using Next.js, Supabase, and TypeScript
+
+**Repository**: [github.com/karumbidza/HELP-DESK](https://github.com/karumbidza/HELP-DESK)
