@@ -23,6 +23,13 @@ export default async function DashboardLayout({ children }: { children: ReactNod
 
   const userRole = (profile?.role as UserRole) || 'user'
 
+  // Debug logging
+  console.log('=== Dashboard Layout Debug ===')
+  console.log('User ID:', user.id)
+  console.log('Profile:', JSON.stringify(profile, null, 2))
+  console.log('Extracted Role:', userRole)
+  console.log('==============================')
+
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
