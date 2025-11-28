@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import Link from 'next/link'
-import { Plus, Filter, Search, Clock, User, AlertCircle, CheckCircle } from 'lucide-react'
+import { Plus, Filter, Search, Clock, User, AlertCircle, CheckCircle, UserPlus } from 'lucide-react'
 import { TicketWithRelations, TicketStatus, TicketPriority } from '@/types/tickets'
+import { UserRole } from '@/types/database.types'
+import { QuickAssignButton } from '@/components/tickets/QuickAssignButton'
 
 async function getTickets() {
   const supabase = await createClient()
@@ -54,10 +56,10 @@ async function getTickets() {
 
   if (error) {
     console.error('Error fetching tickets:', error)
-    return []
+    return { tickets: [], profile }
   }
 
-  return tickets || []
+  return { tickets: tickets || [], profile }
 }
 
 function getStatusIcon(status: TicketStatus) {
@@ -130,7 +132,11 @@ function formatDate(dateString: string) {
   }
 }
 
-function TicketCard({ ticket }: { ticket: TicketWithRelations }) {
+function TicketCard({ ticket, userRole, onAssignSuccess }: { 
+  ticket: TicketWithRelations
+  userRole: UserRole
+  onAssignSuccess?: () => void
+}) {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
@@ -188,6 +194,13 @@ function TicketCard({ ticket }: { ticket: TicketWithRelations }) {
                 Assigned to {ticket.contractor.full_name}
               </div>
             )}
+            <QuickAssignButton
+              ticketId={ticket.id}
+              ticketTitle={ticket.title}
+              currentContractorId={ticket.contractor_id}
+              userRole={userRole}
+              onSuccess={onAssignSuccess}
+            />
           </div>
         </div>
       </CardContent>
@@ -248,7 +261,7 @@ function TicketStats({ tickets }: { tickets: TicketWithRelations[] }) {
 }
 
 export default async function TicketsPage() {
-  const tickets = await getTickets()
+  const { tickets, profile } = await getTickets()
 
   return (
     <div className="space-y-6">
@@ -305,7 +318,11 @@ export default async function TicketsPage() {
         ) : (
           <div className="grid gap-4">
             {tickets.map((ticket) => (
-              <TicketCard key={ticket.id} ticket={ticket} />
+              <TicketCard 
+                key={ticket.id} 
+                ticket={ticket} 
+                userRole={profile.role}
+              />
             ))}
           </div>
         )}

@@ -3,8 +3,9 @@ import { createClient } from '@/lib/supabase/server'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { User, MapPin, Clock, Calendar, ArrowLeft } from 'lucide-react'
+import { User, MapPin, Clock, Calendar, ArrowLeft, UserPlus, Settings } from 'lucide-react'
 import Link from 'next/link'
+import { TicketActions } from '@/components/tickets/TicketActions'
 
 interface TicketPageProps {
   params: {
@@ -17,6 +18,13 @@ async function getTicket(id: string) {
   
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  // Get user profile for role checking
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', user.id)
+    .single()
 
   const { data: ticket, error } = await supabase
     .from('tickets')
@@ -43,7 +51,7 @@ async function getTicket(id: string) {
     notFound()
   }
 
-  return ticket
+  return { ticket, user, profile }
 }
 
 function formatDate(dateString: string) {
@@ -91,7 +99,7 @@ function getPriorityColor(priority: string) {
 }
 
 export default async function TicketDetailPage({ params }: TicketPageProps) {
-  const ticket = await getTicket(params.id)
+  const { ticket, user, profile } = await getTicket(params.id)
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -262,22 +270,11 @@ export default async function TicketDetailPage({ params }: TicketPageProps) {
           </Card>
 
           {/* Actions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button className="w-full" variant="outline">
-                Add Comment
-              </Button>
-              <Button className="w-full" variant="outline">
-                Upload Document
-              </Button>
-              <Button className="w-full" variant="outline">
-                Edit Ticket
-              </Button>
-            </CardContent>
-          </Card>
+          <TicketActions
+            ticket={ticket}
+            userRole={profile?.role || 'user'}
+            userId={user.id}
+          />
         </div>
       </div>
     </div>
