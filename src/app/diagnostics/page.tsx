@@ -5,10 +5,29 @@ import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { User } from '@supabase/supabase-js'
+
+interface AuthState {
+  user: User | null
+  error: Error | null
+}
+
+interface ProfileData {
+  id: string
+  full_name: string
+  role: string
+  organization_id: string | null
+  created_at: string
+}
+
+interface ProfileState {
+  data: ProfileData | null
+  error: Error | null
+}
 
 export default function DiagnosticsPage() {
-  const [authState, setAuthState] = useState<any>(null)
-  const [profile, setProfile] = useState<any>(null)
+  const [authState, setAuthState] = useState<AuthState | null>(null)
+  const [profile, setProfile] = useState<ProfileState | null>(null)
   const [loading, setLoading] = useState(true)
 
   const checkAuthState = async () => {
@@ -32,7 +51,7 @@ export default function DiagnosticsPage() {
       console.log('Profile:', profileData)
       console.log('Profile Error:', profileError)
       
-      setProfile({ data: profileData, error: profileError })
+      setProfile({ data: profileData as ProfileData, error: profileError })
     }
 
     setLoading(false)
@@ -45,7 +64,7 @@ export default function DiagnosticsPage() {
       password: 'admin123'
     })
     console.log('Login result:', { data, error })
-    checkAuthState()
+    await checkAuthState()
   }
 
   const logout = async () => {
