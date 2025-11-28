@@ -14,21 +14,23 @@ export default async function DashboardLayout({ children }: { children: ReactNod
     redirect('/login')
   }
 
-  // Fetch user profile with role
-  const { data: profile } = await supabase
+  // Fetch user profile with role - FORCE fresh data
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('*')
     .eq('id', user.id)
     .single()
 
-  const userRole = (profile?.role as UserRole) || 'user'
-
   // Debug logging
   console.log('=== Dashboard Layout Debug ===')
   console.log('User ID:', user.id)
+  console.log('User Email:', user.email)
+  console.log('Profile Error:', profileError)
   console.log('Profile:', JSON.stringify(profile, null, 2))
-  console.log('Extracted Role:', userRole)
+  console.log('Profile Role:', profile?.role)
   console.log('==============================')
+
+  const userRole = (profile?.role as UserRole) || 'user'
 
   return (
     <div className="flex h-screen bg-gray-50">

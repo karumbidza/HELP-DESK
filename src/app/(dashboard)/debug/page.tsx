@@ -93,6 +93,23 @@ export default async function DebugPage() {
 
       <Card>
         <CardHeader>
+          <CardTitle className="text-red-600">🔥 NUCLEAR SESSION RESET 🔥</CardTitle>
+          <CardDescription>If nothing else works, this will completely reset everything</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-red-600 font-medium">
+            This will destroy ALL session data and force a fresh login. Use if super admin role still not showing.
+          </p>
+          <Link href="/api/auth/nuclear-reset">
+            <Button variant="destructive" className="w-full">
+              🚀 NUCLEAR RESET - Clear Everything
+            </Button>
+          </Link>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
           <CardTitle>Quick Fix Actions</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
