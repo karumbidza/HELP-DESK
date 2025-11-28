@@ -2,214 +2,347 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { UserRole } from '@/types/database.types'
-import { ArrowLeft } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Loader2, CheckCircle, AlertCircle, ArrowLeft, UserPlus } from 'lucide-react'
 import Link from 'next/link'
+import { UserRole } from '@/types/database.types'
+
+interface Organization {
+  id: string
+  name: string
+}
+
+interface CreateUserFormData {
+  email: string
+  password: string
+  confirmPassword: string
+  full_name: string
+  role: UserRole | ''
+  organization_id: string
+}
+
+interface UserProfile {
+  role: UserRole
+  organization_id: string | null
+}
 
 export default function CreateUserPage() {
-  const [email, setEmail] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [role, setRole] = useState<UserRole>('user')
-  const [organizationId, setOrganizationId] = useState('')
-  const [password, setPassword] = useState('')
+  const router = useRouter()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([])
-  const router = useRouter()
-  const supabase = createClient()
+  const [success, setSuccess] = useState<string | null>(null)
+  const [organizations, setOrganizations] = useState<Organization[]>([])
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null)
+
+  const [formData, setFormData] = useState<CreateUserFormData>({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    full_name: '',
+    role: '',
+    organization_id: ''
+  })
 
   useEffect(() => {
-    async function fetchOrganizations() {
-      const { data } = await supabase.from('organizations').select('*')
-      setOrganizations(data || [])
-    }
-    fetchOrganizations()
-  }, [supabase])
+    loadOrganizations()
+    checkUserProfile()
+  }, [])
 
-  const handleCreate = async (e: React.FormEvent) => {
+  const loadOrganizations = async () => {
+    try {
+      const response = await fetch('/api/admin/organizations')
+      if (response.ok) {
+        const data = await response.json()
+        setOrganizations(data.organizations || [])
+      }
+    } catch (err) {
+      console.error('Failed to load organizations:', err)
+    }
+  }
+
+  const checkUserProfile = async () => {
+    try {
+      const response = await fetch('/api/profile')
+      if (response.ok) {
+        const data = await response.json()
+        setUserProfile(data.profile)
+        
+        // Auto-set organization for org admins
+        if (data.profile.role === 'org_admin' && data.profile.organization_id) {
+          setFormData(prev => ({ ...prev, organization_id: data.profile.organization_id }))
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load user profile:', err)
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (formData.password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
+    if (!formData.role) {
+      setError('Please select a role')
+      return
+    }
+
+    // For non-super-admins, organization is required
+    if (formData.role !== 'super_admin' && !formData.organization_id) {
+      setError('Please select an organization')
+      return
+    }
+
     setLoading(true)
     setError(null)
+    setSuccess(null)
 
     try {
-      // Create auth user
-      const { data: authData, error: signUpError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: fullName,
-            role: role,
-          },
-          emailRedirectTo: `${window.location.origin}/login`,
-        },
-      })
-
-      if (signUpError) throw signUpError
-
-      // Update profile with organization
-      if (authData.user && organizationId) {
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .update({ organization_id: organizationId })
-          .eq('id', authData.user.id)
-
-        if (profileError) throw profileError
+      const payload = {
+        email: formData.email,
+        password: formData.password,
+        full_name: formData.full_name,
+        role: formData.role,
+        organization_id: formData.organization_id || undefined
       }
 
-      setSuccess(true)
-      setTimeout(() => {
-        router.push('/admin/users')
-      }, 2000)
+      const response = await fetch('/api/admin/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSuccess(`User "${data.user.full_name}" created successfully!`)
+        setFormData({
+          email: '',
+          password: '',
+          confirmPassword: '',
+          full_name: '',
+          role: '',
+          organization_id: userProfile?.role === 'org_admin' ? userProfile.organization_id || '' : ''
+        })
+        
+        // Redirect after a delay
+        setTimeout(() => {
+          router.push('/admin/users')
+        }, 2000)
+      } else {
+        setError(data.error || 'Failed to create user')
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred creating the user')
+      setError('Failed to create user')
     } finally {
       setLoading(false)
     }
   }
 
-  if (success) {
-    return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-green-600">User Created Successfully!</CardTitle>
-            <CardDescription>
-              An email has been sent to {email} with login instructions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-gray-600">Redirecting to users list...</p>
-          </CardContent>
-        </Card>
-      </div>
-    )
+  const getRoleOptions = () => {
+    if (userProfile?.role === 'super_admin') {
+      return [
+        { value: 'org_admin', label: 'Organization Admin' },
+        { value: 'user', label: 'User' },
+        { value: 'contractor', label: 'Contractor' }
+      ]
+    } else if (userProfile?.role === 'org_admin') {
+      return [
+        { value: 'org_admin', label: 'Organization Admin' },
+        { value: 'user', label: 'User' },
+        { value: 'contractor', label: 'Contractor' }
+      ]
+    }
+    return []
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-2xl mx-auto space-y-6">
       <div className="flex items-center gap-4">
         <Link href="/admin/users">
-          <Button variant="ghost" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Users
           </Button>
         </Link>
         <div>
           <h1 className="text-3xl font-bold text-gray-900">Create New User</h1>
-          <p className="mt-1 text-gray-600">Add a new user to the platform</p>
+          <p className="mt-1 text-gray-600">
+            Add a new user to the system
+          </p>
         </div>
       </div>
 
-      <Card className="max-w-2xl">
+      {error && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+
+      {success && (
+        <Alert className="bg-green-50 text-green-800 border-green-200">
+          <CheckCircle className="h-4 w-4" />
+          <AlertDescription>{success}</AlertDescription>
+        </Alert>
+      )}
+
+      <Card>
         <CardHeader>
-          <CardTitle>User Details</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5" />
+            User Details
+          </CardTitle>
           <CardDescription>
-            Fill in the information below to create a new user account
+            Enter the details for the new user account
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleCreate} className="space-y-4">
-            {error && (
-              <div className="rounded-md bg-red-50 p-3 text-sm text-red-800">
-                {error}
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="full_name">Full Name *</Label>
+                <Input
+                  id="full_name"
+                  placeholder="John Doe"
+                  value={formData.full_name}
+                  onChange={(e) => setFormData(prev => ({ ...prev, full_name: e.target.value }))}
+                  required
+                  disabled={loading}
+                />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="fullName">Full Name *</Label>
-              <Input
-                id="fullName"
-                type="text"
-                placeholder="John Doe"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
+              <div className="space-y-2">
+                <Label htmlFor="email">Email Address *</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="john@company.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="password">Password *</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Minimum 6 characters"
+                  value={formData.password}
+                  onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
+                  required
+                  minLength={6}
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirm Password *</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  placeholder="Repeat password"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData(prev => ({ ...prev, confirmPassword: e.target.value }))}
+                  required
+                  disabled={loading}
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="role">Role *</Label>
+                <Select 
+                  value={formData.role} 
+                  onValueChange={(value: UserRole) => setFormData(prev => ({ ...prev, role: value }))}
+                  disabled={loading}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getRoleOptions().map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="organization">Organization {formData.role !== 'super_admin' && '*'}</Label>
+                <Select 
+                  value={formData.organization_id} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, organization_id: value }))}
+                  disabled={loading || userProfile?.role === 'org_admin' || formData.role === 'super_admin'}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      userProfile?.role === 'org_admin' 
+                        ? "Your organization" 
+                        : formData.role === 'super_admin'
+                        ? "Not applicable"
+                        : "Select organization"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-4 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => router.back()}
                 disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email *</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="john@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Temporary Password *</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Min. 6 characters"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                minLength={6}
-                disabled={loading}
-              />
-              <p className="text-xs text-gray-500">User will receive this password via email</p>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="role">Role *</Label>
-              <Select value={role} onValueChange={(value: UserRole) => setRole(value)} disabled={loading}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="user">User</SelectItem>
-                  <SelectItem value="contractor">Contractor</SelectItem>
-                  <SelectItem value="org_admin">Organization Admin</SelectItem>
-                  <SelectItem value="super_admin">Super Admin</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="organization">Organization</Label>
-              <Select 
-                value={organizationId} 
-                onValueChange={setOrganizationId} 
-                disabled={loading || role === 'super_admin'}
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select organization (optional for super admin)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {organizations.map((org) => (
-                    <SelectItem key={org.id} value={org.id}>
-                      {org.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {role === 'super_admin' && (
-                <p className="text-xs text-gray-500">Super admins don&apos;t need an organization</p>
-              )}
-            </div>
-
-            <div className="flex gap-4 pt-4">
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Creating User...' : 'Create User'}
+                Cancel
               </Button>
-              <Link href="/admin/users">
-                <Button type="button" variant="outline" disabled={loading}>
-                  Cancel
-                </Button>
-              </Link>
+              <Button 
+                type="submit" 
+                disabled={loading || !formData.email || !formData.password || !formData.full_name || !formData.role}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    <UserPlus className="mr-2 h-4 w-4" />
+                    Create User
+                  </>
+                )}
+              </Button>
             </div>
           </form>
         </CardContent>
