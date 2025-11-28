@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
       CREATE TYPE IF NOT EXISTS ticket_status AS ENUM ('open', 'assigned', 'accepted', 'in_progress', 'completed', 'closed', 'cancelled');
       CREATE TYPE IF NOT EXISTS ticket_priority AS ENUM ('low', 'medium', 'high', 'urgent');
       CREATE TYPE IF NOT EXISTS ticket_category AS ENUM ('IT', 'maintenance', 'projects', 'sales', 'stores', 'general');
-      CREATE TYPE IF NOT EXISTS update_type AS ENUM ('created', 'assigned', 'accepted', 'rejected', 'arrived', 'in_progress', 'completed', 'closed', 'cancelled');
+      CREATE TYPE IF NOT EXISTS update_type AS ENUM ('created', 'assigned', 'accepted', 'rejected', 'arrived', 'in_progress', 'completed', 'closed', 'cancelled', 'status_change', 'comment');
       CREATE TYPE IF NOT EXISTS document_type AS ENUM ('permit_to_work', 'job_card', 'invoice', 'proof_of_payment', 'quote', 'photo', 'other');
       CREATE TYPE IF NOT EXISTS notification_type AS ENUM ('email', 'sms', 'whatsapp', 'push');
       CREATE TYPE IF NOT EXISTS notification_status AS ENUM ('sent', 'pending', 'failed');
@@ -57,10 +57,33 @@ export async function POST(request: NextRequest) {
         updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
       );
 
+      -- Create ticket_comments table for chat functionality
+      CREATE TABLE IF NOT EXISTS ticket_comments (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        ticket_id UUID REFERENCES tickets(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+        message TEXT NOT NULL CHECK (length(message) >= 1),
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
+      -- Create ticket_updates table for tracking changes
+      CREATE TABLE IF NOT EXISTS ticket_updates (
+        id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+        ticket_id UUID REFERENCES tickets(id) ON DELETE CASCADE,
+        user_id UUID REFERENCES profiles(id) ON DELETE SET NULL,
+        update_type update_type NOT NULL,
+        description TEXT,
+        old_status ticket_status,
+        new_status ticket_status,
+        created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+      );
+
       -- Enable RLS
       ALTER TABLE tickets ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE ticket_comments ENABLE ROW LEVEL SECURITY;
+      ALTER TABLE ticket_updates ENABLE ROW LEVEL SECURITY;
 
-      -- Create RLS policies
+      -- Create RLS policies for tickets
       CREATE POLICY IF NOT EXISTS "Users can view tickets in their organization" ON tickets
         FOR SELECT USING (
           organization_id IN (
@@ -95,6 +118,68 @@ export async function POST(request: NextRequest) {
             AND role = 'super_admin'
           )
         );
+
+      -- Create RLS policies for ticket_comments
+      CREATE POLICY IF NOT EXISTS "Users can view comments for accessible tickets" ON ticket_comments
+        FOR SELECT USING (
+          ticket_id IN (
+            SELECT id FROM tickets WHERE
+            organization_id IN (
+              SELECT organization_id FROM profiles WHERE id = auth.uid()
+            )
+            OR requester_id = auth.uid()
+            OR contractor_id = auth.uid()
+            OR EXISTS (
+              SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'
+            )
+          )
+        );
+
+      CREATE POLICY IF NOT EXISTS "Users can create comments for accessible tickets" ON ticket_comments
+        FOR INSERT WITH CHECK (
+          ticket_id IN (
+            SELECT id FROM tickets WHERE
+            organization_id IN (
+              SELECT organization_id FROM profiles WHERE id = auth.uid()
+            )
+            OR requester_id = auth.uid()
+            OR contractor_id = auth.uid()
+            OR EXISTS (
+              SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'
+            )
+          )
+        );
+
+      -- Create RLS policies for ticket_updates
+      CREATE POLICY IF NOT EXISTS "Users can view updates for accessible tickets" ON ticket_updates
+        FOR SELECT USING (
+          ticket_id IN (
+            SELECT id FROM tickets WHERE
+            organization_id IN (
+              SELECT organization_id FROM profiles WHERE id = auth.uid()
+            )
+            OR requester_id = auth.uid()
+            OR contractor_id = auth.uid()
+            OR EXISTS (
+              SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'
+            )
+          )
+        );
+
+      CREATE POLICY IF NOT EXISTS "Users can create updates for accessible tickets" ON ticket_updates
+        FOR INSERT WITH CHECK (
+          ticket_id IN (
+            SELECT id FROM tickets WHERE
+            organization_id IN (
+              SELECT organization_id FROM profiles WHERE id = auth.uid()
+            )
+            OR requester_id = auth.uid()
+            OR contractor_id = auth.uid()
+            OR EXISTS (
+              SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'super_admin'
+            )
+          )
+        );
     `
 
     const { error } = await supabase.rpc('exec', { sql: createTablesSQL })
@@ -109,7 +194,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({ 
       message: 'Database setup completed successfully',
-      tables_created: ['tickets']
+      tables_created: ['tickets', 'ticket_comments', 'ticket_updates']
     })
 
   } catch (error) {
