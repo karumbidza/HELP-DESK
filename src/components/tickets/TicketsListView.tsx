@@ -22,8 +22,8 @@ import {
 } from 'lucide-react'
 import { TicketWithRelations, TicketStatus, TicketPriority } from '@/types/tickets'
 import { UserRole } from '@/types/database.types'
-import { TicketDetailModal } from '@/components/tickets/TicketDetailModal'
-import { QuickAssignButton } from '@/components/tickets/QuickAssignButton'
+import { TicketDetailModal } from './TicketDetailModal'
+import { QuickAssignButton } from './QuickAssignButton'
 
 interface TicketsListViewProps {
   tickets: TicketWithRelations[]

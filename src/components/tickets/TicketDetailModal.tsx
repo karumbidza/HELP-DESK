@@ -6,8 +6,6 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
-import { ScrollArea } from '@/components/ui/scroll-area'
-import { Separator } from '@/components/ui/separator'
 import { 
   Clock, 
   User, 
@@ -24,8 +22,8 @@ import {
 } from 'lucide-react'
 import { TicketWithRelations, TicketStatus, TicketPriority } from '@/types/tickets'
 import { UserRole } from '@/types/database.types'
-import { TicketStatusUpdate } from '@/components/tickets/TicketStatusUpdate'
-import { TicketChat } from '@/components/tickets/TicketChat'
+import { TicketStatusUpdate } from './TicketStatusUpdate'
+import { TicketChat } from './TicketChat'
 
 interface TicketDetailModalProps {
   ticket: TicketWithRelations | null
