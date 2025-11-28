@@ -3,13 +3,14 @@ import { createClient } from '@/lib/supabase/server'
 import { AssignTicketRequest } from '@/types/tickets'
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string
-  }
+  }>
 }
 
 export async function PUT(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params
     const supabase = await createClient()
     
     // Authenticate user
@@ -207,6 +208,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
 
 export async function DELETE(request: NextRequest, { params }: RouteParams) {
   try {
+    const { id } = await params
     const supabase = await createClient()
     
     // Authenticate user
@@ -244,7 +246,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
         scheduled_arrival: null,
         updated_at: new Date().toISOString()
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .select(`
         *,
         requester:profiles!tickets_requester_id_fkey(id, full_name, email),
@@ -265,7 +267,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     const { error: updateRecordError } = await supabase
       .from('ticket_updates')
       .insert({
-        ticket_id: params.id,
+        ticket_id: id,
         update_type: 'created', // Back to open
         description: 'Ticket unassigned and moved back to open',
         created_by: user.id,
