@@ -23,18 +23,18 @@ export default async function AdminUsersPage() {
     .eq('id', user.id)
     .single()
 
-  const userRole = profile?.role as UserRole
+  const userRole = (profile?.role as UserRole) || 'user'
 
   // Only super_admin and org_admin can access this page
-  if (!['super_admin', 'org_admin'].includes(userRole)) {
+  if (!(['super_admin', 'org_admin'] as UserRole[]).includes(userRole)) {
     redirect('/dashboard')
   }
 
   // Fetch users based on role
   let usersQuery = supabase.from('profiles').select('*, organizations(name)')
 
-  if (userRole === 'org_admin') {
-    usersQuery = usersQuery.eq('organization_id', profile?.organization_id)
+  if (userRole === 'org_admin' && profile?.organization_id) {
+    usersQuery = usersQuery.eq('organization_id', profile.organization_id)
   }
 
   const { data: users } = await usersQuery

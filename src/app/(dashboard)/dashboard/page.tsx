@@ -23,7 +23,11 @@ export default async function DashboardPage() {
   const userRole = (profile?.role as UserRole) || 'user'
 
   // Fetch stats based on role
-  let stats: any[] = []
+  let stats: Array<{
+    name: string;
+    value: number | string;
+    icon: React.ComponentType<{ className?: string }>;
+  }> = []
 
   if (userRole === 'super_admin') {
     const { count: orgCount } = await supabase
