@@ -49,7 +49,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { data: ticket, error: ticketError } = await supabase
       .from('tickets')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (ticketError || !ticket) {
