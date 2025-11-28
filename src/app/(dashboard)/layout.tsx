@@ -43,7 +43,6 @@ export default async function DashboardLayout({ children }: { children: ReactNod
           <div className="flex-1 overflow-y-auto p-4">
             <SidebarNav 
               userRole={userRole} 
-              organizationId={profile?.organization_id} 
             />
           </div>
         </div>
