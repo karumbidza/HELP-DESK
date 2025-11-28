@@ -11,7 +11,9 @@ import {
   FolderKanban, 
   Settings, 
   BarChart3,
-  UserCircle 
+  UserCircle,
+  Ticket,
+  Plus
 } from 'lucide-react'
 
 interface NavItem {
@@ -27,6 +29,18 @@ const navigationItems: NavItem[] = [
     href: '/dashboard', 
     icon: LayoutDashboard,
     roles: 'all' 
+  },
+  { 
+    name: 'Tickets', 
+    href: '/tickets', 
+    icon: Ticket,
+    roles: 'all' 
+  },
+  { 
+    name: 'New Ticket', 
+    href: '/tickets/create', 
+    icon: Plus,
+    roles: ['user', 'org_admin', 'contractor'] 
   },
   { 
     name: 'Organizations', 
