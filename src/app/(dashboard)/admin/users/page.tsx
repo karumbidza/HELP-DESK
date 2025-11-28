@@ -86,7 +86,7 @@ export default async function AdminUsersPage() {
                       <RoleBadge role={u.role as UserRole} />
                     </TableCell>
                     {userRole === 'super_admin' && (
-                      <TableCell>{(u as any).organizations?.name || 'N/A'}</TableCell>
+                      <TableCell>{(u as { organizations?: { name: string } }).organizations?.name || 'N/A'}</TableCell>
                     )}
                     <TableCell>{new Date(u.created_at).toLocaleDateString()}</TableCell>
                   </TableRow>

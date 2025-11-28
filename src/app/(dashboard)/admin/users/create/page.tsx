@@ -21,7 +21,7 @@ export default function CreateUserPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [organizations, setOrganizations] = useState<any[]>([])
+  const [organizations, setOrganizations] = useState<Array<{ id: string; name: string }>>([])
   const router = useRouter()
   const supabase = createClient()
 
@@ -197,7 +197,7 @@ export default function CreateUserPage() {
                 </SelectContent>
               </Select>
               {role === 'super_admin' && (
-                <p className="text-xs text-gray-500">Super admins don't need an organization</p>
+                <p className="text-xs text-gray-500">Super admins don&apos;t need an organization</p>
               )}
             </div>
 

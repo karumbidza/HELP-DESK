@@ -67,7 +67,7 @@ export default async function AdminOrganizationsPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {organizations?.reduce((acc, org) => acc + ((org as any).profiles?.[0]?.count || 0), 0) || 0}
+              {organizations?.reduce((acc, org) => acc + ((org as { profiles?: Array<{ count: number }> }).profiles?.[0]?.count || 0), 0) || 0}
             </div>
           </CardContent>
         </Card>
@@ -110,7 +110,7 @@ export default async function AdminOrganizationsPage() {
                   <TableRow key={org.id}>
                     <TableCell className="font-medium">{org.name}</TableCell>
                     <TableCell>{org.subdomain || 'N/A'}</TableCell>
-                    <TableCell>{(org as any).profiles?.[0]?.count || 0}</TableCell>
+                    <TableCell>{(org as { profiles?: Array<{ count: number }> }).profiles?.[0]?.count || 0}</TableCell>
                     <TableCell>
                       <Badge variant="outline">Active</Badge>
                     </TableCell>

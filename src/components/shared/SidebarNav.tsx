@@ -68,10 +68,9 @@ const navigationItems: NavItem[] = [
 
 interface SidebarNavProps {
   userRole: UserRole
-  organizationId?: string | null
 }
 
-export function SidebarNav({ userRole, organizationId }: SidebarNavProps) {
+export function SidebarNav({ userRole }: SidebarNavProps) {
   const pathname = usePathname()
 
   // Debug: log the role

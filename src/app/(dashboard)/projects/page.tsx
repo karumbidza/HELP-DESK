@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { UserRole } from '@/types/database.types'
 import { Calendar, CheckCircle, Clock, AlertCircle, Plus } from 'lucide-react'
-import Link from 'next/link'
 
 export default async function ProjectsPage() {
   const supabase = await createClient()

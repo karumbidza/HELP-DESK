@@ -71,7 +71,7 @@ export default async function DashboardPage() {
             Welcome back, {profile?.full_name || user.email}!
           </h1>
           <p className="mt-1 text-gray-600">
-            Here's what's happening with your {userRole === 'super_admin' ? 'platform' : 'account'} today.
+            Here&apos;s what&apos;s happening with your {userRole === 'super_admin' ? 'platform' : 'account'} today.
           </p>
         </div>
         <RoleBadge role={userRole} />
