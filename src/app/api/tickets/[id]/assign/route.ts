@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { data: updatedTicket, error: updateError } = await supabase
       .from('tickets')
       .update(updateData)
-      .eq('id', params.id)
+      .eq('id', id)
       .select(`
         *,
         requester:profiles!tickets_requester_id_fkey(id, full_name, email),
@@ -144,7 +144,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     const { error: updateRecordError } = await supabase
       .from('ticket_updates')
       .insert({
-        ticket_id: params.id,
+        ticket_id: id,
         update_type: 'assigned',
         description: `Ticket assigned to ${contractor.full_name}`,
         notes: body.notes || null,
@@ -169,7 +169,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       .insert({
         organization_id: ticket.organization_id,
         user_id: body.contractor_id,
-        ticket_id: params.id,
+        ticket_id: id,
         message: `New ${ticket.priority} priority ticket assigned: ${ticket.title}`,
         notification_type: 'email',
         metadata: {
