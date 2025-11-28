@@ -11,6 +11,11 @@ export async function GET() {
     return NextResponse.json({ error: error.message }, { status: 400 })
   }
 
-  // Redirect to dashboard
-  return NextResponse.redirect(new URL('/dashboard', process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'))
+  // Add cache busting headers
+  const response = NextResponse.redirect(new URL('/dashboard?refresh=' + Date.now(), process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'))
+  response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+  response.headers.set('Pragma', 'no-cache')
+  response.headers.set('Expires', '0')
+  
+  return response
 }
